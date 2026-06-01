@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>توزيع المهام التشغيلية - بيت الثقافة</title>
+    <style>
+        @font-face {
+            font-family: 'BytRegular';
+            src: url('byt-Regular.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'LarkenRegular';
+            src: url('Larken-Regular.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            --primary-color: #0f172a;
+            --accent-color: #059669;
+            --bg-main: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --shift-a: #2563eb;
+            --shift-b: #7c3aed;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'BytRegular', 'Segoe UI', Tahoma, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        header {
+            background: var(--primary-color);
+            color: #ffffff;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            font-family: 'LarkenRegular', 'BytRegular', sans-serif;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .filters {
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            min-width: 300px;
+            font-size: 14px;
+        }
+
+        .planner-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            align-items: start;
+        }
+
+        .bucket {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            min-height: 200px;
+        }
+
+        .bucket-title {
+            font-weight: bold;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+            color: var(--primary-color);
+        }
+
+        .task-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .task-title {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .tags {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .tag.shift-a { background: #dbeafe; color: var(--shift-a); }
+        .tag.shift-b { background: #f3e8ff; color: var(--shift-b); }
+        .tag.system { background: #d1fae5; color: #065f46; }
+        .tag.report { background: #fee2e2; color: #991b1b; }
+
+        .checklist {
+            border-top: 1px dashed var(--border-color);
+            padding-top: 10px;
+            margin-bottom: 12px;
+        }
+
+        .check-item {
+            display: flex;
+            gap: 8px;
+            font-size: 12px;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+        }
+
+        .assignees {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            background: #f8fafc;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .owner { font-weight: bold; color: var(--primary-color); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>بيت الثقافة - تشغيل وتوزيع المهام</h1>
+        <p>نظام تحويل الأوصاف الوظيفية إلى قوائم تحقق ميدانية</p>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" id="tab-daily" onclick="switchTab('daily')">المهام اليومية (حسب البرنامج)</button>
+        <button class="tab-btn" id="tab-reports" onclick="switchTab('reports')">التقارير والمهام الدورية</button>
+    </div>
+
+    <div class="filters" id="daily-filters">
+        <label for="program-select">اختر تاريخ الفعالية لظهور المهام المرتبطة:</label>
+        <select id="program-select" onchange="renderBoard()">
+            <option value="2">2 يونيو - مكتبتي الصغيرة (مكتبة الطفل)</option>
+            <option value="7">7 يونيو - رمزية المرأة في الرواية السعودية (مساحة التدريب)</option>
+            <option value="9">9 يونيو - القارئ والواقع الرقمي (مساحة الابتكار)</option>
+            <option value="10">10 يونيو - نظام الجرائم المعلوماتية (المسرح) / صناعة الشغف (مساحة التدريب)</option>
+            <option value="11">11 يونيو - ضجيج الوجم | جلسة شعرية (مساحة التدريب)</option>
+            <option value="14">14 يونيو - قطرة حياة (البهو) / مشاريع الذكاء الاصطناعي (مساحة التدريب)</option>
+            <option value="15">15 يونيو - الكتابة العربية (تدريب) / رابونزل (مكتبة) / دليلك لبيئة العمل (مسرح)</option>
+            <option value="21">21 يونيو - إدارة المشاريع PMP (مساحة التدريب)</option>
+            <option value="24">24 يونيو - الإدارة في الثقافة (مساحة التدريب)</option>
+            <option value="30">30 يونيو - تصميم الألعاب الاحترافية (معمل الحاسب)</option>
+        </select>
+    </div>
+
+    <div class="planner-grid" id="planner-board"></div>
+
+    <script>
+        const team = {
+            opsA: ['عثمان', 'رغد', 'أحمد'],
+            opsB: ['عائشة صياح', 'عبدالعزيز'],
+            shared: ['عائشة راشد', 'عبدالرحمن'],
+            partners: ['عمر'],
+            lib: ['ديما']
+        };
+
+        const programs = {
+            "2": { title: "مكتبتي الصغيرة", loc: "مكتبة الطفل", type: "lib" },
+            "7": { title: "رمزية المرأة في الرواية السعودية", loc: "مساحة التدريب", type: "ops" },
+            "9": { title: "القارئ والواقع الرقمي", loc: "مساحة الابتكار", type: "ops" },
+            "10": { title: "الجرائم المعلوماتية + صناعة الشغف", loc: "المسرح ومساحة التدريب", type: "ops" },
+            "11": { title: "ضجيج الوجم | جلسة شعرية", loc: "مساحة التدريب", type: "ops" },
+            "14": { title: "قطرة حياة + الذكاء الاصطناعي", loc: "البهو ومساحة التدريب", type: "ops" },
+            "15": { title: "الكتابة العربية + رابونزل + دليلك لبيئة العمل", loc: "متعدد", type: "mixed" },
+            "21": { title: "إدارة المشاريع PMP", loc: "مساحة التدريب", type: "ops" },
+            "24": { title: "الإدارة في الثقافة", loc: "مساحة التدريب", type: "ops" },
+            "30": { title: "تصميم الألعاب الاحترافية", loc: "معمل الحاسب الآلي", type: "ops" }
+        };
+
+        let currentTab = 'daily';
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('tab-daily').classList.toggle('active', tab === 'daily');
+            document.getElementById('tab-reports').classList.toggle('active', tab === 'reports');
+            document.getElementById('daily-filters').style.display = tab === 'daily' ? 'block' : 'none';
+            renderBoard();
+        }
+
+        function renderBoard() {
+            const board = document.getElementById('planner-board');
+            board.innerHTML = '';
+            
+            if (currentTab === 'daily') {
+                const day = document.getElementById('program-select').value;
+                const prog = programs[day];
+
+                // بكت العمليات
+                let opsHtml = `
+                    <div class="task-card">
+                        <div class="tags"><span class="tag shift-a">شفت A</span></div>
+                        <div class="task-title">تجهيز مساحة (${prog.loc}) الصباحي</div>
+                        <div class="checklist">
+                            <div class="check-item"><input type="checkbox"> التأكد من ترتيب الكراسي والإضاءة في ${prog.loc}</div>
+                            <div class="check-item"><input type="checkbox"> تشغيل الشاشات التفاعلية والمايكروفونات وتجربتها</div>
+                        </div>
+                        <div class="assignees"><span class="owner">المكلف: ${team.opsA[0]} و ${team.opsA[1]}</span></div>
+                    </div>
+                    <div class="task-card">
+                        <div class="tags"><span class="tag shift-b">شفت B</span><span class="tag system">تفعيل فيقا</span></div>
+                        <div class="task-title">إدارة دخول فعالية (${prog.title})</div>
+                        <div class="checklist">
+                            <div class="check-item"><input type="checkbox"> طباعة وتثبيت باركود فيقا عند مدخل ${prog.loc}</div>
+                            <div class="check-item"><input type="checkbox"> توجيه المتطوعين للوقوف عند الباب لإرشاد الزوار بمسح الباركود</div>
+                            <div class="check-item"><input type="checkbox"> إغلاق المساحة وإطفاء الأنظمة بعد خروج آخر زائر</div>
+                        </div>
+                        <div class="assignees"><span class="owner">المكلف: ${team.opsB[0]} و ${team.opsB[1]}</span></div>
+                    </div>
+                `;
+
+                // بكت المكتبة
+                let libHtml = `
+                    <div class="task-card">
+                        <div class="tags"><span class="tag shift-a">شفت A</span></div>
+                        <div class="task-title">إدارة مساحات المكتبة اليومية</div>
+                        <div class="checklist">
+                            <div class="check-item"><input type="checkbox"> تفعيل أجهزة الاستعارة الذاتية وفحص اتصالها</div>
+                            <div class="check-item"><input type="checkbox"> ترتيب الكتب المسترجعة في الرفوف حسب التصنيف</div>
+                            ${prog.type === 'lib' || prog.type === 'mixed' ? `<div class="check-item"><input type="checkbox"> استقبال زوار فعالية (${prog.title}) في مساحة الطفل وتجهيز الأدوات</div>` : ''}
+                        </div>
+                        <div class="assignees"><span class="owner">المكلف: ${team.lib[0]}</span></div>
+                    </div>
+                `;
+
+                // بكت الخدمات المساندة
+                let sharedHtml = `
+                    <div class="task-card">
+                        <div class="tags"><span class="tag shift-a">شفت A و B</span></div>
+                        <div class="task-title">الدعم التقني وجاهزية المرافق</div>
+                        <div class="checklist">
+                            <div class="check-item"><input type="checkbox"> التأكد من عمل شبكة الواي فاي للزوار في ${prog.loc}</div>
+                            <div class="check-item"><input type="checkbox"> متابعة طلبات الصيانة والنظافة العاجلة مع شركة التشغيل</div>
+                        </div>
+                        <div class="assignees"><span class="owner">المكلف: ${team.shared[0]} و ${team.shared[1]}</span></div>
+                    </div>
+                `;
+
+                // بكت الشراكات
+                let partnersHtml = `
+                    <div class="task-card">
+                        <div class="tags"><span class="tag shift-a">متابعة خارجية</span></div>
+                        <div class="task-title">تنسيق الجهات لبرنامج (${prog.title})</div>
+                        <div class="checklist">
+                            <div class="check-item"><input type="checkbox"> تأكيد حضور منفذ البرنامج أو الجهة الشريكة</div>
+                            <div class="check-item"><input type="checkbox"> تجهيز تصاريح الدخول والتنسيق اللوجستي للضيوف</div>
+                        </div>
+                        <div class="assignees"><span class="owner">المكلف: ${team.partners[0]}</span></div>
+                    </div>
+                `;
+
+                board.innerHTML = `
+                    <div class="bucket"><div class="bucket-title">العمليات (تجهيز المساحات والزوار)</div>${opsHtml}</div>
+                    <div class="bucket"><div class="bucket-title">المكتبة ومصادر المعلومات</div>${libHtml}</div>
+                    <div class="bucket"><div class="bucket-title">الخدمات المساندة (دعم وتقنية)</div>${sharedHtml}</div>
+                    <div class="bucket"><div class="bucket-title">الشراكات والتواصل</div>${partnersHtml}</div>
+                `;
+
+            } else {
+                // قسم التقارير والمهام الدورية (مفصول تماماً)
+                board.innerHTML = `
+                    <div class="bucket">
+                        <div class="bucket-title">مهام يومية وأسبوعية (تقارير)</div>
+                        <div class="task-card">
+                            <div class="tags"><span class="tag report">إغلاق يومي</span><span class="tag report">الداش بورد الأسود</span></div>
+                            <div class="task-title">إدخال إحصائية الزوار اليومية</div>
+                            <div class="checklist">
+                                <div class="check-item"><input type="checkbox"> فتح نظام فيقا وسحب إجمالي أرقام التحضير للبرنامج المنفذ اليوم</div>
+                                <div class="check-item"><input type="checkbox"> إدخال الرقم النهائي في الداش بورد الأسود المعتمد فقط</div>
+                            </div>
+                            <div class="assignees"><span class="owner">العمليات - مناوب شفت B</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="tags"><span class="tag report">أسبوعي</span></div>
+                            <div class="task-title">تقرير جودة الشراكات والمكتبة</div>
+                            <div class="checklist">
+                                <div class="check-item"><input type="checkbox"> حصر المستفيدين من الإعارة (ديما)</div>
+                                <div class="check-item"><input type="checkbox"> تقييم التزام الجهات الشريكة للبرامج المنفذة (عمر)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bucket">
+                        <div class="bucket-title">المهام الشهرية الثابتة (تواريخ محددة)</div>
+                        <div class="task-card">
+                            <div class="tags"><span class="tag system">14 من كل شهر</span><span class="tag system">CRM</span></div>
+                            <div class="task-title">الرفع الشهري لبرامج الشهر القادم</div>
+                            <div class="checklist">
+                                <div class="check-item"><input type="checkbox"> مراجعة ملف الإكسل للبرامج المعتمدة واعتماد النصوص</div>
+                                <div class="check-item"><input type="checkbox"> رفع جميع البرامج دفعة واحدة على نظام CRM</div>
+                            </div>
+                            <div class="assignees"><span class="owner">المكلف: فريق العمليات بالتناوب</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="tags"><span class="tag system">24 من كل شهر</span><span class="tag system">منصة فيقا</span></div>
+                            <div class="task-title">مزامنة البرامج على المنصة الرسمية</div>
+                            <div class="checklist">
+                                <div class="check-item"><input type="checkbox"> سحب البرامج من CRM ومطابقتها</div>
+                                <div class="check-item"><input type="checkbox"> نشر البرامج على منصة فيقا وتوليد الباركودات الخاصة بها</div>
+                            </div>
+                            <div class="assignees"><span class="owner">المكلف: عائشة راشد وعبدالرحمن</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="tags"><span class="tag report">نهاية الشهر</span></div>
+                            <div class="task-title">التقرير التشغيلي الموحد</div>
+                            <div class="checklist">
+                                <div class="check-item"><input type="checkbox"> جمع إحصائيات الشهر لجميع البرامج المنفذة وإغلاق الملف</div>
+                            </div>
+                            <div class="assignees"><span class="owner">العمليات</span></div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        window.onload = renderBoard;
+    </script>
+</body>
+</html>
